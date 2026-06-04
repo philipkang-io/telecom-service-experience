@@ -1,0 +1,946 @@
+openapi: 3.0.3
+info:
+  title: Telecom Service Experience API
+  version: 1.0.0
+  description: |
+    Spec-first onboarding demo API for telecom customer care, service
+    availability, billing, network events, and field appointments.
+  x-owner: digital-experience-platform
+  x-domain: telecom-customer-operations
+  x-workshop-pattern: spec-first-lambda-demo
+  x-api-lifecycle: onboarding-demo
+servers:
+  - url: http://localhost:3000
+    description: Local Lambda/API Gateway emulator
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com
+    description: AWS API Gateway default stage
+    variables:
+      apiId:
+        default: demo-api
+      region:
+        default: us-west-1
+tags:
+  - name: service-availability
+    description: Broadband and wireless service qualification by address.
+  - name: subscriptions
+    description: Customer products, plans, and active service identifiers.
+  - name: billing
+    description: Current balance, due dates, and invoice summary data.
+  - name: network-status
+    description: Network outages and maintenance events by geography.
+  - name: support
+    description: Customer support case intake and lookup.
+  - name: appointments
+    description: Technician visit scheduling and appointment retrieval.
+paths:
+  /service-availability:
+    get:
+      tags:
+        - service-availability
+      summary: Check service availability for an address
+      operationId: checkServiceAvailability
+      parameters:
+        - name: postalCode
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$'
+            example: M5V 2T6
+        - name: streetNumber
+          in: query
+          required: true
+          schema:
+            type: string
+            example: '100'
+        - name: unit
+          in: query
+          required: false
+          schema:
+            type: string
+            example: 18A
+      responses:
+        '200':
+          description: Available service options for the requested address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceAvailabilityResponse'
+              examples:
+                available:
+                  value:
+                    addressId: ADR-9001
+                    qualificationId: QUAL-2026-1001
+                    serviceable: true
+                    maxDownloadMbps: 1500
+                    maxUploadMbps: 940
+                    accessTechnologies:
+                      - fibre
+                      - five_g
+                    availableProducts:
+                      - productCode: FIBRE-1500
+                        name: Fibre Internet 1.5 Gig
+                        category: internet
+                        recurringPrice:
+                          amount: 95
+                          currency: CAD
+                      - productCode: MOB-5G-60
+                        name: 5G Share 60GB
+                        category: mobile
+                        recurringPrice:
+                          amount: 65
+                          currency: CAD
+                    checkedAt: '2026-05-05T13:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /customers/{customerId}/subscriptions:
+    get:
+      tags:
+        - subscriptions
+      summary: List customer subscriptions
+      operationId: listCustomerSubscriptions
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Active and recently changed customer subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionListResponse'
+              examples:
+                default:
+                  value:
+                    customerId: CUST-10001
+                    subscriptions:
+                      - subscriptionId: SUB-5001
+                        productCode: FIBRE-1500
+                        productName: Fibre Internet 1.5 Gig
+                        category: internet
+                        status: active
+                        serviceAddress:
+                          line1: 100 King Street West
+                          city: Toronto
+                          province: ON
+                          postalCode: M5X 1A9
+                          countryCode: CA
+                        activatedAt: '2025-09-18T14:12:00Z'
+                      - subscriptionId: SUB-5002
+                        productCode: MOB-5G-60
+                        productName: 5G Share 60GB
+                        category: mobile
+                        status: active
+                        msisdn: '+14165550184'
+                        activatedAt: '2024-11-04T18:22:00Z'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /customers/{customerId}/billing-summary:
+    get:
+      tags:
+        - billing
+      summary: Get customer billing summary
+      operationId: getCustomerBillingSummary
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Current customer billing state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingSummary'
+              examples:
+                default:
+                  value:
+                    customerId: CUST-10001
+                    accountNumber: BA-70004567
+                    billingCycleDay: 17
+                    balance:
+                      amount: 142.38
+                      currency: CAD
+                    pastDue:
+                      amount: 0
+                      currency: CAD
+                    paymentDueDate: '2026-05-17'
+                    autopayEnabled: true
+                    latestInvoice:
+                      invoiceId: INV-2026-0421
+                      issuedDate: '2026-04-21'
+                      invoiceTotal:
+                        amount: 142.38
+                        currency: CAD
+                      status: issued
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /network/outages:
+    get:
+      tags:
+        - network-status
+      summary: Search network outage events
+      operationId: searchNetworkOutages
+      parameters:
+        - name: postalCode
+          in: query
+          required: false
+          schema:
+            type: string
+            example: H3B 4W8
+        - name: serviceType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ServiceCategory'
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Matching network events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutageSearchResponse'
+              examples:
+                activeMaintenance:
+                  value:
+                    events:
+                      - eventId: OUT-3001
+                        title: Planned fibre maintenance
+                        serviceTypes:
+                          - internet
+                        impactedAreas:
+                          - city: Montreal
+                            province: QC
+                            postalCodePrefix: H3B
+                        status: investigating
+                        startedAt: '2026-05-05T06:30:00Z'
+                        estimatedResolvedAt: '2026-05-05T16:00:00Z'
+                        customerMessage: Some fibre customers may see intermittent connectivity.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /support/tickets:
+    post:
+      tags:
+        - support
+      summary: Create a support ticket
+      operationId: createSupportTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportTicketCreateRequest'
+            examples:
+              connectivityIssue:
+                value:
+                  customerId: CUST-10001
+                  subscriptionId: SUB-5001
+                  category: connectivity
+                  priority: high
+                  contactChannel: sms
+                  description: Fibre modem is online, but customer cannot reach the internet.
+      responses:
+        '201':
+          description: Support ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicket'
+              examples:
+                created:
+                  value:
+                    ticketId: TCK-8001
+                    customerId: CUST-10001
+                    subscriptionId: SUB-5001
+                    category: connectivity
+                    priority: high
+                    status: open
+                    contactChannel: sms
+                    description: Fibre modem is online, but customer cannot reach the internet.
+                    createdAt: '2026-05-05T13:04:00Z'
+                    updatedAt: '2026-05-05T13:04:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /support/tickets/{ticketId}:
+    get:
+      tags:
+        - support
+      summary: Get support ticket details
+      operationId: getSupportTicket
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Support ticket details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicket'
+              examples:
+                default:
+                  value:
+                    ticketId: TCK-8001
+                    customerId: CUST-10001
+                    subscriptionId: SUB-5001
+                    category: connectivity
+                    priority: high
+                    status: open
+                    contactChannel: sms
+                    description: Fibre modem is online, but customer cannot reach the internet.
+                    createdAt: '2026-05-05T13:04:00Z'
+                    updatedAt: '2026-05-05T13:04:00Z'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /technician-appointments:
+    post:
+      tags:
+        - appointments
+      summary: Schedule a technician appointment
+      operationId: scheduleTechnicianAppointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+            examples:
+              installation:
+                value:
+                  customerId: CUST-10001
+                  subscriptionId: SUB-5001
+                  reason: installation
+                  requestedWindow:
+                    startsAt: '2026-05-08T13:00:00Z'
+                    endsAt: '2026-05-08T17:00:00Z'
+                  address:
+                    line1: 100 King Street West
+                    city: Toronto
+                    province: ON
+                    postalCode: M5X 1A9
+                    countryCode: CA
+                  notes: Customer prefers SMS updates before arrival.
+      responses:
+        '201':
+          description: Technician appointment scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TechnicianAppointment'
+              examples:
+                scheduled:
+                  value:
+                    appointmentId: APT-6101
+                    customerId: CUST-10001
+                    subscriptionId: SUB-5001
+                    reason: installation
+                    status: scheduled
+                    scheduledWindow:
+                      startsAt: '2026-05-08T13:00:00Z'
+                      endsAt: '2026-05-08T17:00:00Z'
+                    address:
+                      line1: 100 King Street West
+                      city: Toronto
+                      province: ON
+                      postalCode: M5X 1A9
+                      countryCode: CA
+                    technician:
+                      technicianId: TECH-204
+                      displayName: Field Team 204
+                    createdAt: '2026-05-05T13:08:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /technician-appointments/{appointmentId}:
+    get:
+      tags:
+        - appointments
+      summary: Get technician appointment details
+      operationId: getTechnicianAppointment
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      responses:
+        '200':
+          description: Technician appointment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TechnicianAppointment'
+              examples:
+                default:
+                  value:
+                    appointmentId: APT-6101
+                    customerId: CUST-10001
+                    subscriptionId: SUB-5001
+                    reason: installation
+                    status: scheduled
+                    scheduledWindow:
+                      startsAt: '2026-05-08T13:00:00Z'
+                      endsAt: '2026-05-08T17:00:00Z'
+                    address:
+                      line1: 100 King Street West
+                      city: Toronto
+                      province: ON
+                      postalCode: M5X 1A9
+                      countryCode: CA
+                    technician:
+                      technicianId: TECH-204
+                      displayName: Field Team 204
+                    createdAt: '2026-05-05T13:08:00Z'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^CUST-\d+$'
+        example: CUST-10001
+    TicketId:
+      name: ticketId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^TCK-\d+$'
+        example: TCK-8001
+    AppointmentId:
+      name: appointmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^APT-\d+$'
+        example: APT-6101
+  responses:
+    BadRequest:
+      description: The request was malformed or failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            default:
+              value:
+                errorCode: BAD_REQUEST
+                message: Request validation failed.
+                correlationId: corr-7fc6d8f1
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            default:
+              value:
+                errorCode: NOT_FOUND
+                message: Resource not found.
+                correlationId: corr-1e947fbb
+  schemas:
+    Address:
+      type: object
+      required:
+        - line1
+        - city
+        - province
+        - postalCode
+        - countryCode
+      properties:
+        line1:
+          type: string
+          example: 100 King Street West
+        line2:
+          type: string
+          example: Suite 1800
+        city:
+          type: string
+          example: Toronto
+        province:
+          type: string
+          minLength: 2
+          maxLength: 2
+          example: ON
+        postalCode:
+          type: string
+          example: M5X 1A9
+        countryCode:
+          type: string
+          minLength: 2
+          maxLength: 2
+          example: CA
+    AppointmentReason:
+      type: string
+      enum:
+        - installation
+        - repair
+        - equipment_swap
+        - service_upgrade
+    AppointmentStatus:
+      type: string
+      enum:
+        - scheduled
+        - in_transit
+        - completed
+        - cancelled
+    AppointmentWindow:
+      type: object
+      required:
+        - startsAt
+        - endsAt
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+    AppointmentCreateRequest:
+      type: object
+      required:
+        - customerId
+        - reason
+        - requestedWindow
+        - address
+      properties:
+        customerId:
+          type: string
+          example: CUST-10001
+        subscriptionId:
+          type: string
+          example: SUB-5001
+        reason:
+          $ref: '#/components/schemas/AppointmentReason'
+        requestedWindow:
+          $ref: '#/components/schemas/AppointmentWindow'
+        address:
+          $ref: '#/components/schemas/Address'
+        notes:
+          type: string
+          maxLength: 500
+    BillingSummary:
+      type: object
+      required:
+        - customerId
+        - accountNumber
+        - billingCycleDay
+        - balance
+        - pastDue
+        - paymentDueDate
+        - autopayEnabled
+      properties:
+        customerId:
+          type: string
+          example: CUST-10001
+        accountNumber:
+          type: string
+          example: BA-70004567
+        billingCycleDay:
+          type: integer
+          minimum: 1
+          maximum: 31
+        balance:
+          $ref: '#/components/schemas/Money'
+        pastDue:
+          $ref: '#/components/schemas/Money'
+        paymentDueDate:
+          type: string
+          format: date
+        autopayEnabled:
+          type: boolean
+        latestInvoice:
+          $ref: '#/components/schemas/InvoiceSummary'
+    ErrorResponse:
+      type: object
+      required:
+        - errorCode
+        - message
+        - correlationId
+      properties:
+        errorCode:
+          type: string
+          example: BAD_REQUEST
+        message:
+          type: string
+          example: Request validation failed.
+        correlationId:
+          type: string
+          example: corr-7fc6d8f1
+        details:
+          type: array
+          items:
+            type: string
+    InvoiceSummary:
+      type: object
+      required:
+        - invoiceId
+        - issuedDate
+        - invoiceTotal
+        - status
+      properties:
+        invoiceId:
+          type: string
+          example: INV-2026-0421
+        issuedDate:
+          type: string
+          format: date
+        invoiceTotal:
+          $ref: '#/components/schemas/Money'
+        status:
+          type: string
+          enum:
+            - issued
+            - paid
+            - overdue
+    Money:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0
+          example: 95
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: CAD
+    OutageEvent:
+      type: object
+      required:
+        - eventId
+        - title
+        - serviceTypes
+        - impactedAreas
+        - status
+        - startedAt
+        - customerMessage
+      properties:
+        eventId:
+          type: string
+          example: OUT-3001
+        title:
+          type: string
+          example: Planned fibre maintenance
+        serviceTypes:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ServiceCategory'
+        impactedAreas:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OutageImpactedArea'
+        status:
+          type: string
+          enum:
+            - investigating
+            - identified
+            - monitoring
+            - resolved
+        startedAt:
+          type: string
+          format: date-time
+        estimatedResolvedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+        customerMessage:
+          type: string
+    OutageImpactedArea:
+      type: object
+      required:
+        - city
+        - province
+      properties:
+        city:
+          type: string
+          example: Montreal
+        province:
+          type: string
+          example: QC
+        postalCodePrefix:
+          type: string
+          example: H3B
+    OutageSearchResponse:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/OutageEvent'
+    ProductOffering:
+      type: object
+      required:
+        - productCode
+        - name
+        - category
+        - recurringPrice
+      properties:
+        productCode:
+          type: string
+          example: FIBRE-1500
+        name:
+          type: string
+          example: Fibre Internet 1.5 Gig
+        category:
+          $ref: '#/components/schemas/ServiceCategory'
+        recurringPrice:
+          $ref: '#/components/schemas/Money'
+    ServiceAvailabilityResponse:
+      type: object
+      required:
+        - addressId
+        - qualificationId
+        - serviceable
+        - accessTechnologies
+        - availableProducts
+        - checkedAt
+      properties:
+        addressId:
+          type: string
+          example: ADR-9001
+        qualificationId:
+          type: string
+          example: QUAL-2026-1001
+        serviceable:
+          type: boolean
+        maxDownloadMbps:
+          type: integer
+          minimum: 0
+          example: 1500
+        maxUploadMbps:
+          type: integer
+          minimum: 0
+          example: 940
+        accessTechnologies:
+          type: array
+          items:
+            type: string
+            enum:
+              - fibre
+              - cable
+              - dsl
+              - lte
+              - five_g
+        availableProducts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductOffering'
+        checkedAt:
+          type: string
+          format: date-time
+    ServiceCategory:
+      type: string
+      enum:
+        - internet
+        - mobile
+        - tv
+        - voice
+    Subscription:
+      type: object
+      required:
+        - subscriptionId
+        - productCode
+        - productName
+        - category
+        - status
+        - activatedAt
+      properties:
+        subscriptionId:
+          type: string
+          example: SUB-5001
+        productCode:
+          type: string
+          example: FIBRE-1500
+        productName:
+          type: string
+          example: Fibre Internet 1.5 Gig
+        category:
+          $ref: '#/components/schemas/ServiceCategory'
+        status:
+          type: string
+          enum:
+            - active
+            - suspended
+            - pending_activation
+            - cancelled
+        serviceAddress:
+          $ref: '#/components/schemas/Address'
+        msisdn:
+          type: string
+          example: '+14165550184'
+        activatedAt:
+          type: string
+          format: date-time
+    SubscriptionListResponse:
+      type: object
+      required:
+        - customerId
+        - subscriptions
+      properties:
+        customerId:
+          type: string
+          example: CUST-10001
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+    SupportTicket:
+      type: object
+      required:
+        - ticketId
+        - customerId
+        - category
+        - priority
+        - status
+        - contactChannel
+        - description
+        - createdAt
+        - updatedAt
+      properties:
+        ticketId:
+          type: string
+          example: TCK-8001
+        customerId:
+          type: string
+          example: CUST-10001
+        subscriptionId:
+          type: string
+          example: SUB-5001
+        category:
+          type: string
+          enum:
+            - connectivity
+            - billing
+            - device
+            - appointment
+            - account
+        priority:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+            - critical
+        status:
+          type: string
+          enum:
+            - open
+            - in_progress
+            - resolved
+            - closed
+        contactChannel:
+          type: string
+          enum:
+            - email
+            - sms
+            - phone
+            - app
+        description:
+          type: string
+          maxLength: 1000
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SupportTicketCreateRequest:
+      type: object
+      required:
+        - customerId
+        - category
+        - priority
+        - contactChannel
+        - description
+      properties:
+        customerId:
+          type: string
+          example: CUST-10001
+        subscriptionId:
+          type: string
+          example: SUB-5001
+        category:
+          type: string
+          enum:
+            - connectivity
+            - billing
+            - device
+            - appointment
+            - account
+        priority:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+            - critical
+        contactChannel:
+          type: string
+          enum:
+            - email
+            - sms
+            - phone
+            - app
+        description:
+          type: string
+          minLength: 10
+          maxLength: 1000
+    Technician:
+      type: object
+      required:
+        - technicianId
+        - displayName
+      properties:
+        technicianId:
+          type: string
+          example: TECH-204
+        displayName:
+          type: string
+          example: Field Team 204
+    TechnicianAppointment:
+      type: object
+      required:
+        - appointmentId
+        - customerId
+        - reason
+        - status
+        - scheduledWindow
+        - address
+        - createdAt
+      properties:
+        appointmentId:
+          type: string
+          example: APT-6101
+        customerId:
+          type: string
+          example: CUST-10001
+        subscriptionId:
+          type: string
+          example: SUB-5001
+        reason:
+          $ref: '#/components/schemas/AppointmentReason'
+        status:
+          $ref: '#/components/schemas/AppointmentStatus'
+        scheduledWindow:
+          $ref: '#/components/schemas/AppointmentWindow'
+        address:
+          $ref: '#/components/schemas/Address'
+        technician:
+          $ref: '#/components/schemas/Technician'
+        createdAt:
+          type: string
+          format: date-time

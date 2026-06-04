@@ -1,0 +1,40 @@
+name: Onboard API (Postman)
+
+on:
+  workflow_dispatch:
+    inputs:
+      project-name:
+        description: Service project name
+        default: telecom-service-experience
+        required: true
+      workspace-id:
+        description: Existing (empty) Postman workspace ID to populate
+        default: 2722a397-fb2a-42ec-9e29-f6a5af606ba1
+        required: true
+
+jobs:
+  onboard:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: postman_token
+        uses: postman-cs/postman-resolve-service-token-action@v0.1.1
+        with:
+          postman-api-key: ${{ secrets.POSTMAN_SA_KEY }}
+
+      - uses: postman-cs/postman-api-onboarding-action@v0
+        with:
+          project-name: ${{ inputs.project-name }}
+          workspace-id: ${{ inputs.workspace-id }}
+          spec-url: https://raw.githubusercontent.com/philipkang-io/telecom-service-experience/main/openapi.yaml
+          generate-ci-workflow: "true"
+          monitor-cron: ""
+          postman-api-key: ${{ secrets.POSTMAN_API_KEY }}
+          postman-access-token: ${{ steps.postman_token.outputs.token }}
+          postman-team-id: ${{ steps.postman_token.outputs.team-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-fallback-token: ${{ secrets.GH_FALLBACK_TOKEN }}
