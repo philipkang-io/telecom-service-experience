@@ -1,0 +1,4 @@
+type: folder
+name: network
+items:
+  - ref: ./outages/folder.yaml

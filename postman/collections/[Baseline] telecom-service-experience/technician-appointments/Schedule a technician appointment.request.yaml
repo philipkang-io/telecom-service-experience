@@ -1,0 +1,78 @@
+type: http
+name: Schedule a technician appointment
+url: '{{baseUrl}}/technician-appointments'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerId": "CUST-10001",
+      "subscriptionId": "SUB-5001",
+      "reason": "installation",
+      "requestedWindow": {
+        "startsAt": "2026-05-08T13:00:00Z",
+        "endsAt": "2026-05-08T17:00:00Z"
+      },
+      "address": {
+        "line1": "100 King Street West",
+        "city": "Toronto",
+        "province": "ON",
+        "postalCode": "M5X 1A9",
+        "countryCode": "CA"
+      },
+      "notes": "Customer prefers SMS updates before arrival."
+    }
+examples:
+  - response:
+      statusCode: 201
+      statusText: Created
+      body:
+        type: json
+        content: |-
+          {
+            "appointmentId": "APT-6101",
+            "customerId": "CUST-10001",
+            "subscriptionId": "SUB-5001",
+            "reason": "installation",
+            "status": "scheduled",
+            "scheduledWindow": {
+              "startsAt": "2026-05-08T13:00:00Z",
+              "endsAt": "2026-05-08T17:00:00Z"
+            },
+            "address": {
+              "line1": "100 King Street West",
+              "city": "Toronto",
+              "province": "ON",
+              "postalCode": "M5X 1A9",
+              "countryCode": "CA"
+            },
+            "technician": {
+              "technicianId": "TECH-204",
+              "displayName": "Field Team 204"
+            },
+            "createdAt": "2026-05-05T13:08:00Z"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: Technician appointment scheduled
+  - response:
+      statusCode: 400
+      statusText: Bad Request
+      body:
+        type: json
+        content: |-
+          {
+            "errorCode": "BAD_REQUEST",
+            "message": "Request validation failed.",
+            "correlationId": "corr-7fc6d8f1"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: The request was malformed or failed validation

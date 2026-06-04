@@ -1,0 +1,62 @@
+type: http
+name: Search network outage events
+url: '{{baseUrl}}/network/outages?postalCode=H3B 4W8&serviceType=mobile&activeOnly=true'
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+queryParams:
+  - key: postalCode
+    value: H3B 4W8
+  - key: serviceType
+    value: mobile
+  - key: activeOnly
+    value: 'true'
+examples:
+  - response:
+      statusCode: 200
+      statusText: OK
+      body:
+        type: json
+        content: |-
+          {
+            "events": [
+              {
+                "eventId": "OUT-3001",
+                "title": "Planned fibre maintenance",
+                "serviceTypes": [
+                  "internet"
+                ],
+                "impactedAreas": [
+                  {
+                    "city": "Montreal",
+                    "province": "QC",
+                    "postalCodePrefix": "H3B"
+                  }
+                ],
+                "status": "investigating",
+                "startedAt": "2026-05-05T06:30:00Z",
+                "estimatedResolvedAt": "2026-05-05T16:00:00Z",
+                "customerMessage": "Some fibre customers may see intermittent connectivity."
+              }
+            ]
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: Matching network events
+  - response:
+      statusCode: 400
+      statusText: Bad Request
+      body:
+        type: json
+        content: |-
+          {
+            "errorCode": "BAD_REQUEST",
+            "message": "Request validation failed.",
+            "correlationId": "corr-7fc6d8f1"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: The request was malformed or failed validation

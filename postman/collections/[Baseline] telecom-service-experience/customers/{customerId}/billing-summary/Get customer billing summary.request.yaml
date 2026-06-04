@@ -1,0 +1,60 @@
+type: http
+name: Get customer billing summary
+url: '{{baseUrl}}/customers/:customerId/billing-summary'
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: customerId
+    value: CUST-10001
+examples:
+  - response:
+      statusCode: 200
+      statusText: OK
+      body:
+        type: json
+        content: |-
+          {
+            "customerId": "CUST-10001",
+            "accountNumber": "BA-70004567",
+            "billingCycleDay": 17,
+            "balance": {
+              "amount": 142.38,
+              "currency": "CAD"
+            },
+            "pastDue": {
+              "amount": 0,
+              "currency": "CAD"
+            },
+            "paymentDueDate": "2026-05-17",
+            "autopayEnabled": true,
+            "latestInvoice": {
+              "invoiceId": "INV-2026-0421",
+              "issuedDate": "2026-04-21",
+              "invoiceTotal": {
+                "amount": 142.38,
+                "currency": "CAD"
+              },
+              "status": "issued"
+            }
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: Current customer billing state
+  - response:
+      statusCode: 404
+      statusText: Not Found
+      body:
+        type: json
+        content: |-
+          {
+            "errorCode": "NOT_FOUND",
+            "message": "Resource not found.",
+            "correlationId": "corr-1e947fbb"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: The requested resource was not found

@@ -1,0 +1,5 @@
+type: folder
+name: tickets
+items:
+  - ref: ./{ticketId}/folder.yaml
+  - ref: ./Create a support ticket.request.yaml

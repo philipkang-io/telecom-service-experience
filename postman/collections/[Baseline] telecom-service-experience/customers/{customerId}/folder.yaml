@@ -1,0 +1,5 @@
+type: folder
+name: '{customerId}'
+items:
+  - ref: ./subscriptions/folder.yaml
+  - ref: ./billing-summary/folder.yaml

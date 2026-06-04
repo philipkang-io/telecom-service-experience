@@ -1,0 +1,18 @@
+$schema: https://schema.postman.com/json/draft-2020-12/collection/v3.0.0/
+type: collection
+name: '[Contract] telecom-service-experience'
+description: |
+  Spec-first onboarding demo API for telecom customer care, service
+  availability, billing, network events, and field appointments.
+id: 25ce543d-11f5-462a-859e-45571397c00c
+variables:
+  - key: baseUrl
+    value: http://localhost:3000
+    type: any
+items:
+  - ref: ./service-availability/folder.yaml
+  - ref: ./customers/folder.yaml
+  - ref: ./network/folder.yaml
+  - ref: ./support/folder.yaml
+  - ref: ./technician-appointments/folder.yaml
+  - ref: ./00 - Resolve Secrets.request.yaml

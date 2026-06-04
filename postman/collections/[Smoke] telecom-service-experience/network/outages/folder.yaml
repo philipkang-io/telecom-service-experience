@@ -1,0 +1,4 @@
+type: folder
+name: outages
+items:
+  - ref: ./Search network outage events.request.yaml

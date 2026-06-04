@@ -1,0 +1,48 @@
+type: http
+name: Get support ticket details
+url: '{{baseUrl}}/support/tickets/:ticketId'
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: ticketId
+    value: TCK-8001
+examples:
+  - response:
+      statusCode: 200
+      statusText: OK
+      body:
+        type: json
+        content: |-
+          {
+            "ticketId": "TCK-8001",
+            "customerId": "CUST-10001",
+            "subscriptionId": "SUB-5001",
+            "category": "connectivity",
+            "priority": "high",
+            "status": "open",
+            "contactChannel": "sms",
+            "description": "Fibre modem is online, but customer cannot reach the internet.",
+            "createdAt": "2026-05-05T13:04:00Z",
+            "updatedAt": "2026-05-05T13:04:00Z"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: Support ticket details
+  - response:
+      statusCode: 404
+      statusText: Not Found
+      body:
+        type: json
+        content: |-
+          {
+            "errorCode": "NOT_FOUND",
+            "message": "Resource not found.",
+            "correlationId": "corr-1e947fbb"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: The requested resource was not found

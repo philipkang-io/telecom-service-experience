@@ -1,0 +1,4 @@
+type: folder
+name: support
+items:
+  - ref: ./tickets/folder.yaml

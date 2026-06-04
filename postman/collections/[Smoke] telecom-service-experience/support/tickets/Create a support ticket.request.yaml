@@ -1,0 +1,76 @@
+type: http
+name: Create a support ticket
+url: '{{baseUrl}}/support/tickets'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerId": "CUST-10001",
+      "subscriptionId": "SUB-5001",
+      "category": "connectivity",
+      "priority": "high",
+      "contactChannel": "sms",
+      "description": "Fibre modem is online, but customer cannot reach the internet."
+    }
+scripts:
+  - type: afterResponse
+    code:
+      - // [Smoke] Auto-generated test assertions
+      - pm.test('Status code is successful (2xx)', function () {
+      - '    pm.response.to.be.success;'
+      - '});'
+      - pm.test('Response time is acceptable', function () {
+      - '    var threshold = parseInt(pm.environment.get(''RESPONSE_TIME_THRESHOLD'') || ''2000'', 10);'
+      - '    pm.expect(pm.response.responseTime).to.be.below(threshold);'
+      - '});'
+      - pm.test('Response body is not empty', function () {
+      - '    if (pm.response.code !== 204) {'
+      - '        var body = pm.response.text();'
+      - '        pm.expect(body.length).to.be.above(0);'
+      - '    }'
+      - '});'
+    language: text/javascript
+examples:
+  - response:
+      statusCode: 201
+      statusText: Created
+      body:
+        type: json
+        content: |-
+          {
+            "ticketId": "TCK-8001",
+            "customerId": "CUST-10001",
+            "subscriptionId": "SUB-5001",
+            "category": "connectivity",
+            "priority": "high",
+            "status": "open",
+            "contactChannel": "sms",
+            "description": "Fibre modem is online, but customer cannot reach the internet.",
+            "createdAt": "2026-05-05T13:04:00Z",
+            "updatedAt": "2026-05-05T13:04:00Z"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: Support ticket created
+  - response:
+      statusCode: 400
+      statusText: Bad Request
+      body:
+        type: json
+        content: |-
+          {
+            "errorCode": "BAD_REQUEST",
+            "message": "Request validation failed.",
+            "correlationId": "corr-7fc6d8f1"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: The request was malformed or failed validation

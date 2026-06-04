@@ -1,0 +1,4 @@
+type: folder
+name: billing-summary
+items:
+  - ref: ./Get customer billing summary.request.yaml

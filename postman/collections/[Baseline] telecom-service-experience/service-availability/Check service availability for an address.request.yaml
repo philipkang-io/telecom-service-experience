@@ -1,0 +1,72 @@
+type: http
+name: Check service availability for an address
+url: '{{baseUrl}}/service-availability?postalCode=M5V 2T6&streetNumber=100&unit=18A'
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+queryParams:
+  - key: postalCode
+    value: M5V 2T6
+  - key: streetNumber
+    value: '100'
+  - key: unit
+    value: 18A
+examples:
+  - response:
+      statusCode: 200
+      statusText: OK
+      body:
+        type: json
+        content: |-
+          {
+            "addressId": "ADR-9001",
+            "qualificationId": "QUAL-2026-1001",
+            "serviceable": true,
+            "maxDownloadMbps": 1500,
+            "maxUploadMbps": 940,
+            "accessTechnologies": [
+              "fibre",
+              "five_g"
+            ],
+            "availableProducts": [
+              {
+                "productCode": "FIBRE-1500",
+                "name": "Fibre Internet 1.5 Gig",
+                "category": "internet",
+                "recurringPrice": {
+                  "amount": 95,
+                  "currency": "CAD"
+                }
+              },
+              {
+                "productCode": "MOB-5G-60",
+                "name": "5G Share 60GB",
+                "category": "mobile",
+                "recurringPrice": {
+                  "amount": 65,
+                  "currency": "CAD"
+                }
+              }
+            ],
+            "checkedAt": "2026-05-05T13:00:00Z"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: Available service options for the requested address
+  - response:
+      statusCode: 400
+      statusText: Bad Request
+      body:
+        type: json
+        content: |-
+          {
+            "errorCode": "BAD_REQUEST",
+            "message": "Request validation failed.",
+            "correlationId": "corr-7fc6d8f1"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: The request was malformed or failed validation

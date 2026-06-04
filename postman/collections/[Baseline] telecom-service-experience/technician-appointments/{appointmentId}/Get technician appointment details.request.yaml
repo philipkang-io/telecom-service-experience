@@ -1,0 +1,59 @@
+type: http
+name: Get technician appointment details
+url: '{{baseUrl}}/technician-appointments/:appointmentId'
+method: GET
+headers:
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: appointmentId
+    value: APT-6101
+examples:
+  - response:
+      statusCode: 200
+      statusText: OK
+      body:
+        type: json
+        content: |-
+          {
+            "appointmentId": "APT-6101",
+            "customerId": "CUST-10001",
+            "subscriptionId": "SUB-5001",
+            "reason": "installation",
+            "status": "scheduled",
+            "scheduledWindow": {
+              "startsAt": "2026-05-08T13:00:00Z",
+              "endsAt": "2026-05-08T17:00:00Z"
+            },
+            "address": {
+              "line1": "100 King Street West",
+              "city": "Toronto",
+              "province": "ON",
+              "postalCode": "M5X 1A9",
+              "countryCode": "CA"
+            },
+            "technician": {
+              "technicianId": "TECH-204",
+              "displayName": "Field Team 204"
+            },
+            "createdAt": "2026-05-05T13:08:00Z"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: Technician appointment details
+  - response:
+      statusCode: 404
+      statusText: Not Found
+      body:
+        type: json
+        content: |-
+          {
+            "errorCode": "NOT_FOUND",
+            "message": "Resource not found.",
+            "correlationId": "corr-1e947fbb"
+          }
+      headers:
+        - key: Content-Type
+          value: application/json
+    name: The requested resource was not found

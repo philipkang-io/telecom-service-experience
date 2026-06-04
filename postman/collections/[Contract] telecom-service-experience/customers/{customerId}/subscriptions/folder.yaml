@@ -1,0 +1,4 @@
+type: folder
+name: subscriptions
+items:
+  - ref: ./List customer subscriptions.request.yaml

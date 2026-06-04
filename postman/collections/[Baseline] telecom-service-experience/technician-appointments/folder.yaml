@@ -1,0 +1,5 @@
+type: folder
+name: technician-appointments
+items:
+  - ref: ./{appointmentId}/folder.yaml
+  - ref: ./Schedule a technician appointment.request.yaml

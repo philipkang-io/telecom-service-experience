@@ -1,0 +1,18 @@
+workspace:
+  id: 2722a397-fb2a-42ec-9e29-f6a5af606ba1
+localResources:
+  collections:
+    - ../postman/collections/[Baseline] telecom-service-experience
+    - ../postman/collections/[Smoke] telecom-service-experience
+    - ../postman/collections/[Contract] telecom-service-experience
+  environments:
+    - ../postman/environments/prod.postman_environment.json
+  specs:
+    - ../openapi.yaml
+cloudResources:
+  collections:
+    ../postman/collections/[Baseline] telecom-service-experience: 52509354-3b1543bd-d927-49d8-975a-5112b3f0cadb
+    ../postman/collections/[Smoke] telecom-service-experience: 52509354-d69b2d0e-a877-450d-865d-b8cc394a8db1
+    ../postman/collections/[Contract] telecom-service-experience: 52509354-25ce543d-11f5-462a-859e-45571397c00c
+  environments:
+    ../postman/environments/prod.postman_environment.json: 52509354-7228d0b9-8222-46d1-9ea0-2ae603e2fc86

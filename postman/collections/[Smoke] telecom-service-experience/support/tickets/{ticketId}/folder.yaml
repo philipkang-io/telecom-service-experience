@@ -1,0 +1,4 @@
+type: folder
+name: '{ticketId}'
+items:
+  - ref: ./Get support ticket details.request.yaml

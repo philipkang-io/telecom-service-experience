@@ -1,0 +1,4 @@
+type: folder
+name: service-availability
+items:
+  - ref: ./Check service availability for an address.request.yaml
