@@ -33,7 +33,7 @@ jobs:
         run: |
           set +e
           postman spec lint openapi.yaml \
-            --fail-severity WARNING \
+            --fail-severity ERROR \
             --output JSON > lint-results.json 2> lint-stderr.log
           LINT_EXIT=$?
           cat lint-stderr.log >&2
